@@ -23,10 +23,10 @@ class Calculator(QMainWindow):
         self.__KEYBOARD_SHIFT = 16777248
         self.__KEYBOARD_DIGITS = ("0", "1", "2",
                                   "3", "4", "5", "6", "7", "8", "9")
-        self.__KEYBOARD_OPERATOR = (",", "/", "*", "-", "+", "=")
+        self.__KEYBOARD_OPERATOR = (".", "/", "*", "-", "+", "=")
         self.__UI_DIGITS = ("btnZero", "btnOne", "btnTwo", "btnThree",
                             "btnFour", "btnFive", "btnSix", "btnSeven", "btnEight", "btnNine")
-        self.__UI_OPERATOR = ("btnCalculate", "btnPlus", "btnMinus",
+        self.__UI_OPERATOR = ("btnDecimal", "btnCalculate", "btnPlus", "btnMinus",
                               "btnMultiply", "btnDivide", "btnClear", "btnDelete")
 
     # connecting buttons for event handling
@@ -44,6 +44,7 @@ class Calculator(QMainWindow):
         self.ui.btnSeven.clicked.connect(lambda x: self.onClick("7"))
         self.ui.btnEight.clicked.connect(lambda x: self.onClick("8"))
         self.ui.btnNine.clicked.connect(lambda x: self.onClick("9"))
+        self.ui.btnDecimal.clicked.connect(lambda x: self.onClick("."))
         self.ui.btnCalculate.clicked.connect(lambda x: self.onClick("="))
         self.ui.btnPlus.clicked.connect(lambda x: self.onClick("+"))
         self.ui.btnMinus.clicked.connect(lambda x: self.onClick("-"))
@@ -56,22 +57,30 @@ class Calculator(QMainWindow):
         print(''.join(self.__input))
         self.ui.labelResult.setText(''.join(self.__input))
 
-    def checkMathExpression(self, key):
-        # first check if keyboard value is viable
-
-        # check if correct math expression was entered
-        print(key)
-        self.__input.append(key)
-        self._displayResult()
-
     def onClick(self, event):
-        self.checkMathExpression(event)
+        print(event)
+        print(self.__input)
+        # catch delete
+
+        try:
+            # first check if only one operator is following a digit
+            if (len(self.__input) == 0 and event in self.__KEYBOARD_DIGITS):
+                self.__input.append(event)
+            elif (event in self.__KEYBOARD_DIGITS):
+                self.__input.append(event)
+            elif (event in self.__KEYBOARD_OPERATOR and self.__input[-1] in self.__KEYBOARD_DIGITS):
+                self.__input.append(event)
+
+            self._displayResult()
+            print(self.__input)
+        except Exception as e:
+            print(e)
 
     # key inputs
     def keyPressEvent(self, event):
         correctInputs = self.__KEYBOARD_DIGITS + self.__KEYBOARD_OPERATOR
 
-        # checking if valid keyboard input was given
+        # check if valid keyboard input was given
         if (event.key() != self.__KEYBOARD_SHIFT and chr(event.key()) in correctInputs):
             self.onClick(chr(event.key()))
 
@@ -80,9 +89,7 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     calculator = Calculator()
     sys.exit(app.exec_())
-    # TODO: 0: catch input
     # TODO: 1: check input (both if keyboard and digit to operator ratio)
-    # TODO: 2: update ui
     # TODO: 3: on result give display result
     # TODO: 4: add logging
 
