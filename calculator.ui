@@ -210,7 +210,7 @@
      <item row="2" column="3">
       <widget class="QPushButton" name="btnMultiply">
        <property name="text">
-        <string>x</string>
+        <string>*</string>
        </property>
       </widget>
      </item>
