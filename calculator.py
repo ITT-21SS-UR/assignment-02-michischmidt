@@ -1,5 +1,5 @@
 from PyQt5 import uic, QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 import sys
 
 
@@ -25,7 +25,8 @@ class Calculator(QMainWindow):
                                   "3", "4", "5", "6", "7", "8", "9")
         self.__KEYBOARD_OPERATOR = (".", "/", "*", "-", "+", "=")
         self.__UI_DIGITS = ("btnZero", "btnOne", "btnTwo", "btnThree",
-                            "btnFour", "btnFive", "btnSix", "btnSeven", "btnEight", "btnNine")
+                            "btnFour", "btnFive", "btnSix", "btnSeven",
+                            "btnEight", "btnNine")
 
     # connecting buttons for event handling
     def _initButtons(self):
@@ -52,28 +53,54 @@ class Calculator(QMainWindow):
             lambda x: self.onClick(self.__DELETE))
         self.ui.btnClear.clicked.connect(lambda x: self.onClick(self.__CLEAR))
 
+    def logButton(message):
+        def funcDecorator(func):
+            def newFunc(self, event):
+                print(message + event)
+                func(self, event)
+
+                print("Current expression: " + (''.join(self.__input)))
+
+                if (event == "="):
+                    print("Result is: " + str(eval(''.join(self.__input))))
+
+            return newFunc
+        return funcDecorator
+
     def displayInput(self):
         self.ui.labelResult.setText(''.join(self.__input))
 
-    def displayResult(self):
-        result = str(eval(''.join(self.__input)))
+    def displayResult(self, result):
         self.ui.labelResult.setText(result)
-        self.clear()
-        self.__input.append(result)
+
+    def calculateResult(self):
+        try:
+            result = str(eval(''.join(self.__input)))
+            self.clear()
+            self.__input.append(result)
+            self.displayResult(result)
+        except Exception as err:
+            self.displayError(err)
+
+    def displayError(self, err):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText("Error")
+        msg.setInformativeText(str(err))
+        msg.setWindowTitle("Error")
+        msg.exec_()
 
     def checkMathExpression(self, newValue):
-        try:
-            # first check if only one operator is following a digit
-            if (len(self.__input) == 0 and newValue in self.__KEYBOARD_DIGITS):
-                return True
-            elif (newValue in self.__KEYBOARD_DIGITS):
-                return True
-            elif (newValue in self.__KEYBOARD_OPERATOR and self.__input[-1] in self.__KEYBOARD_DIGITS):
-                return True
+        # first check if only one operator is following a digit
+        if (len(self.__input) == 0 and newValue in self.__KEYBOARD_DIGITS):
+            return True
+        elif (newValue in self.__KEYBOARD_DIGITS):
+            return True
+        elif (newValue in self.__KEYBOARD_OPERATOR and
+                self.__input[-1] in self.__KEYBOARD_DIGITS):
+            return True
 
-            return False
-        except Exception as e:
-            print(e)
+        return False
 
     def clear(self):
         self.__input = []
@@ -81,8 +108,8 @@ class Calculator(QMainWindow):
     def delete(self):
         del self.__input[-1]
 
+    @logButton("Button clicked: ")
     def onClick(self, event):
-        print(event)
         if (event == self.__CLEAR):
             self.clear()
             self.displayInput()
@@ -91,7 +118,7 @@ class Calculator(QMainWindow):
             self.displayInput()
 
         if (event == "=" and self.checkMathExpression(event)):
-            self.displayResult()
+            self.calculateResult()
 
         elif (self.checkMathExpression(event)):
             self.__input.append(event)
@@ -102,7 +129,8 @@ class Calculator(QMainWindow):
         correctInputs = self.__KEYBOARD_DIGITS + self.__KEYBOARD_OPERATOR
 
         # check if valid keyboard input was given
-        if (event.key() != self.__KEYBOARD_SHIFT and chr(event.key()) in correctInputs):
+        if (event.key() != self.__KEYBOARD_SHIFT and
+                chr(event.key()) in correctInputs):
             self.onClick(chr(event.key()))
 
 
@@ -110,9 +138,7 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     calculator = Calculator()
     sys.exit(app.exec_())
-    # TODO: 4: add logging
-    # TODO: 5: add error display
-    # TODO: 6: catch zero division
+    # TODO: 7: clear funcs up to log sperate
 
 
 if __name__ == '__main__':
