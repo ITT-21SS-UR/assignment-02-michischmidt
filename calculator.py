@@ -67,6 +67,30 @@ class Calculator(QMainWindow):
             return newFunc
         return funcDecorator
 
+    def logKeyboard(message):
+        def funcDecorator(func):
+            def newFunc(self, event):
+                if (event.key() != self.__KEYBOARD_SHIFT):
+                    print(message + (chr(event.key())))
+                func(self, event)
+
+                print("Current expression: " + (''.join(self.__input)))
+
+                if (event == "="):
+                    print("Result is: " + str(eval(''.join(self.__input))))
+
+            return newFunc
+        return funcDecorator
+
+    def logError(message):
+        def funcDecorator(func):
+            def newFunc(self, err):
+                print(message + str(err))
+                func(self, err)
+
+            return newFunc
+        return funcDecorator
+
     def displayInput(self):
         self.ui.labelResult.setText(''.join(self.__input))
 
@@ -82,12 +106,13 @@ class Calculator(QMainWindow):
         except Exception as err:
             self.displayError(err)
 
+    @logError("Error: ")
     def displayError(self, err):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Critical)
         msg.setText("Error")
-        msg.setInformativeText(str(err))
         msg.setWindowTitle("Error")
+        msg.setInformativeText(str(err))
         msg.exec_()
 
     def checkMathExpression(self, newValue):
@@ -108,8 +133,7 @@ class Calculator(QMainWindow):
     def delete(self):
         del self.__input[-1]
 
-    @logButton("Button clicked: ")
-    def onClick(self, event):
+    def handleInput(self, event):
         if (event == self.__CLEAR):
             self.clear()
             self.displayInput()
@@ -124,21 +148,26 @@ class Calculator(QMainWindow):
             self.__input.append(event)
             self.displayInput()
 
+    # button inputs
+    @logButton("Button clicked: ")
+    def onClick(self, event):
+        self.handleInput(event)
+
     # keyboard inputs
+    @logKeyboard("Keyboard clicked: ")
     def keyPressEvent(self, event):
         correctInputs = self.__KEYBOARD_DIGITS + self.__KEYBOARD_OPERATOR
 
         # check if valid keyboard input was given
         if (event.key() != self.__KEYBOARD_SHIFT and
                 chr(event.key()) in correctInputs):
-            self.onClick(chr(event.key()))
+            self.handleInput((chr(event.key())))
 
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
     calculator = Calculator()
     sys.exit(app.exec_())
-    # TODO: 7: clear funcs up to log sperate
 
 
 if __name__ == '__main__':
