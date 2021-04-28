@@ -8,7 +8,6 @@ class Calculator(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initUI()
-        self.__result = 0
         self.__input = []
         self._initKeys()
         self._initButtons()
@@ -16,22 +15,21 @@ class Calculator(QMainWindow):
     def initUI(self):
         self.ui = uic.loadUi("calculator.ui", self)
         self.show()
-        # self.ui.pushButton.clicked.connect(self.countUp)
 
     # declaring every possible input
     def _initKeys(self):
+        self.__DELETE = "delete"
+        self.__CLEAR = "clear"
         self.__KEYBOARD_SHIFT = 16777248
         self.__KEYBOARD_DIGITS = ("0", "1", "2",
                                   "3", "4", "5", "6", "7", "8", "9")
         self.__KEYBOARD_OPERATOR = (".", "/", "*", "-", "+", "=")
         self.__UI_DIGITS = ("btnZero", "btnOne", "btnTwo", "btnThree",
                             "btnFour", "btnFive", "btnSix", "btnSeven", "btnEight", "btnNine")
-        self.__UI_OPERATOR = ("btnDecimal", "btnCalculate", "btnPlus", "btnMinus",
-                              "btnMultiply", "btnDivide", "btnClear", "btnDelete")
 
     # connecting buttons for event handling
     def _initButtons(self):
-        # // TODO: dynamic init of buttons would be prefered
+        # // NOTE: dynamic init of buttons would be prefered
         # for a, b in zip(self.__KEYBOARD_DIGITS, self.__UI_DIGITS):
         #     self.ui.b.clicked.connect(lambda x: self.onClick(a))
         self.ui.btnZero.clicked.connect(lambda x: self.onClick("0"))
@@ -50,18 +48,18 @@ class Calculator(QMainWindow):
         self.ui.btnMinus.clicked.connect(lambda x: self.onClick("-"))
         self.ui.btnMultiply.clicked.connect(lambda x: self.onClick("*"))
         self.ui.btnDivide.clicked.connect(lambda x: self.onClick("/"))
-        self.ui.btnDelete.clicked.connect(lambda x: self.onClick(self.delete))
-        self.ui.btnClear.clicked.connect(lambda x: self.onClick(self.clear))
+        self.ui.btnDelete.clicked.connect(
+            lambda x: self.onClick(self.__DELETE))
+        self.ui.btnClear.clicked.connect(lambda x: self.onClick(self.__CLEAR))
 
     def displayInput(self):
-        print(''.join(self.__input))
         self.ui.labelResult.setText(''.join(self.__input))
 
     def displayResult(self):
         result = str(eval(''.join(self.__input)))
         self.ui.labelResult.setText(result)
-        # TODO: func clear
-        # TODO: set result in index 0
+        self.clear()
+        self.__input.append(result)
 
     def checkMathExpression(self, newValue):
         try:
@@ -77,7 +75,21 @@ class Calculator(QMainWindow):
         except Exception as e:
             print(e)
 
+    def clear(self):
+        self.__input = []
+
+    def delete(self):
+        del self.__input[-1]
+
     def onClick(self, event):
+        print(event)
+        if (event == self.__CLEAR):
+            self.clear()
+            self.displayInput()
+        elif (event == self.__DELETE):
+            self.delete()
+            self.displayInput()
+
         if (event == "=" and self.checkMathExpression(event)):
             self.displayResult()
 
@@ -86,7 +98,6 @@ class Calculator(QMainWindow):
             self.displayInput()
 
     # keyboard inputs
-
     def keyPressEvent(self, event):
         correctInputs = self.__KEYBOARD_DIGITS + self.__KEYBOARD_OPERATOR
 
@@ -99,10 +110,9 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     calculator = Calculator()
     sys.exit(app.exec_())
-    # TODO: 3: on result give display result
-    # TODO: 3.5: add removing and clearing
     # TODO: 4: add logging
     # TODO: 5: add error display
+    # TODO: 6: catch zero division
 
 
 if __name__ == '__main__':
