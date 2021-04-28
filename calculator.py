@@ -50,33 +50,43 @@ class Calculator(QMainWindow):
         self.ui.btnMinus.clicked.connect(lambda x: self.onClick("-"))
         self.ui.btnMultiply.clicked.connect(lambda x: self.onClick("*"))
         self.ui.btnDivide.clicked.connect(lambda x: self.onClick("/"))
-        self.ui.btnClear.clicked.connect(lambda x: self.onClick(self.clear))
         self.ui.btnDelete.clicked.connect(lambda x: self.onClick(self.delete))
+        self.ui.btnClear.clicked.connect(lambda x: self.onClick(self.clear))
 
-    def _displayResult(self):
+    def displayInput(self):
         print(''.join(self.__input))
         self.ui.labelResult.setText(''.join(self.__input))
 
-    def onClick(self, event):
-        print(event)
-        print(self.__input)
-        # catch delete
+    def displayResult(self):
+        result = str(eval(''.join(self.__input)))
+        self.ui.labelResult.setText(result)
+        # TODO: func clear
+        # TODO: set result in index 0
 
+    def checkMathExpression(self, newValue):
         try:
             # first check if only one operator is following a digit
-            if (len(self.__input) == 0 and event in self.__KEYBOARD_DIGITS):
-                self.__input.append(event)
-            elif (event in self.__KEYBOARD_DIGITS):
-                self.__input.append(event)
-            elif (event in self.__KEYBOARD_OPERATOR and self.__input[-1] in self.__KEYBOARD_DIGITS):
-                self.__input.append(event)
+            if (len(self.__input) == 0 and newValue in self.__KEYBOARD_DIGITS):
+                return True
+            elif (newValue in self.__KEYBOARD_DIGITS):
+                return True
+            elif (newValue in self.__KEYBOARD_OPERATOR and self.__input[-1] in self.__KEYBOARD_DIGITS):
+                return True
 
-            self._displayResult()
-            print(self.__input)
+            return False
         except Exception as e:
             print(e)
 
-    # key inputs
+    def onClick(self, event):
+        if (event == "=" and self.checkMathExpression(event)):
+            self.displayResult()
+
+        elif (self.checkMathExpression(event)):
+            self.__input.append(event)
+            self.displayInput()
+
+    # keyboard inputs
+
     def keyPressEvent(self, event):
         correctInputs = self.__KEYBOARD_DIGITS + self.__KEYBOARD_OPERATOR
 
@@ -89,9 +99,10 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     calculator = Calculator()
     sys.exit(app.exec_())
-    # TODO: 1: check input (both if keyboard and digit to operator ratio)
     # TODO: 3: on result give display result
+    # TODO: 3.5: add removing and clearing
     # TODO: 4: add logging
+    # TODO: 5: add error display
 
 
 if __name__ == '__main__':
